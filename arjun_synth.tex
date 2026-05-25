@@ -36,7 +36,7 @@
 
 \title[Arjun as a Synthesis Engine]{Arjun as a Boolean-Function Synthesis Engine}
 \subtitle{From Puura-simplified CNF to an AIG that defines every output}
-\author{Mate Soos}
+\author{Mate Soos, Supratik Chakraborty, Kuldeep S.\ Meel}
 \date{\today}
 
 \begin{document}
@@ -127,7 +127,7 @@
   {\tiny same trick, but lets the var depend on \emph{any} earlier var --- not just inputs}};
 
 \node[sB, below=of s3] (s4)
- {\textbf{3. Unate / definition probe} {\tiny (\texttt{--unatedef}, on by default; \texttt{unate\_def.cpp})}\\
+ {\textbf{3. Unate} {\tiny (\texttt{--unatedef}, on by default; \texttt{unate\_def.cpp})}\\
   {\tiny ``def'' part: $y_i$ forced to a constant. \;
    ``conditional'' part: $y_i = \pm L$ for some literal $L$}};
 
@@ -153,7 +153,7 @@
 \end{frame}
 
 % =========================================================================
-\begin{frame}{Stage 2 --- Extend (UNSAT-define): the duplication trick}
+\begin{frame}{Stage 1 --- Extend (UNSAT-define) via McMillan interpolant}
   \textbf{Goal:} prove that a single output $y$ is fully determined by the
   \emph{inputs alone} --- and, if it is, extract the AIG defining it.
   \medskip
@@ -184,7 +184,7 @@
 \end{frame}
 
 % =========================================================================
-\begin{frame}{Stage 3 --- Backward round: definitions over \emph{anything}}
+\begin{frame}{Stage 2 --- Backward round: definitions over \emph{anything}}
   Extend only accepts $y = f(X)$. \textbf{Backward-round-synth}
   (\texttt{backward.cpp}) relaxes that: $y_i$ may be defined by inputs
   \emph{or} by other not-yet-defined $y_j$, as long as the dependency
@@ -214,7 +214,7 @@
 \end{frame}
 
 % =========================================================================
-\begin{frame}{Stage 4 --- Unate definitions (two flavours)}
+\begin{frame}{Stage 3 --- Unate definitions (two flavours)}
   \textbf{The ``def'' part} --- \emph{pure unate}.
   For each remaining $y$, try the two SAT calls:
   $\;F(X,Y) \wedge F(X,Y') \wedge (y = 0) \wedge (y' = 1)$
@@ -227,10 +227,9 @@
   When both flips are SAT, look at the two SAT witnesses $M_1, M_2$.
   For each candidate literal $L$ with $M_1[L] \neq M_2[L]$, run two
   more SAT calls. If both come back UNSAT we have proved
-  \[
-     y \;=\; L \quad\text{or}\quad y \;=\; \neg L
-  \]
-  --- one literal is enough to define $y$. Candidates are ordered: inputs
+  $ y \;=\; L \quad\text{or}\quad y \;=\; \neg L$
+
+  One literal is enough to define $y$. Candidates are ordered: inputs
   first (cheapest, no cycle risk), then non-inputs that share a clause
   with $y$, then the rest.
   \medskip
@@ -238,8 +237,7 @@
   \begin{exampleblock}{\small Log: unate\_def on bobtuint07neg}
   \scriptsize
   \texttt{[unate\_def] units: 1 cond defs: 0 cond calls: 1973
-   tested: 146 \\
-   p1[U=199 S=1575 T=0] p2[U=0 S=199 T=0]\\
+   tested: 146\\
    defined: 1 still to-define: 145}
   \end{exampleblock}
   \medskip
@@ -392,8 +390,7 @@ cyclic-repair pitfall.
   fusion, De Morgan flattening (free in the input-edge-neg model),
   ITE / MUX3 detection, and \emph{cut-CNF}~\cite{een2007applying} encoding for
   small cones.  One encoder per formula (cross-formula caching is
-  unsound) --- caught by a per-formula AIG-vs-clauses miter under
-  \texttt{SLOW\_DEBUG}.
+  unsound)
 \end{frame}
 
 % =========================================================================
