@@ -122,28 +122,29 @@
  {\textbf{1. Extend} {\tiny (\texttt{--extend}, on by default; \texttt{extend.cpp})}\\
   {\tiny per-var SAT call on a doubled CNF; UNSAT $\Rightarrow$ var is determined by inputs alone}};
 
-\node[sB, below=of s1] (s3)
+\node[sB, below=of s1] (s2)
  {\textbf{2. Backward-round} {\tiny (\texttt{--minimize}, on by default; \texttt{backward.cpp})}\\
   {\tiny same trick, but lets the var depend on \emph{any} earlier var --- not just inputs}};
 
-\node[sB, below=of s3] (s4)
+\node[sB, below=of s2] (s3)
  {\textbf{3. Unate} {\tiny (\texttt{--unatedef}, on by default; \texttt{unate\_def.cpp})}\\
   {\tiny ``def'' part: $y_i$ forced to a constant. \;
    ``conditional'' part: $y_i = \pm L$ for some literal $L$}};
 
-\node[sC, below=of s4] (s5)
+\node[sC, below=of s3] (s4)
  {\textbf{4. Manthan} {\tiny (always runs last; \texttt{manthan.cpp, synth.cpp})}\\
   {\tiny BVE-based initial guess $\rightarrow$ counterexample-guided repair (CEGAR) \cite{golia2020manthan, golia2021engineering}}};
 
-\node[io, below=of s5] (out)
+\node[io, below=of s4] (out)
  {AIG that defines every to-define variable \;($-$final.aig)};
 
-\foreach \a/\b in {in/s0, s0/s1, s1/s2, s2/s3, s3/s4, s4/s5, s5/out}
+\foreach \a/\b in {in/s1, s1/s2, s2/s3, s3/s4, s4/out}
   \draw[fl] (\a) -- (\b);
 
-\node[note, right=2mm of s1.east, text=stageA] {cheap,\\global};
+\node[note, right=2mm of s1.east, text=stageB] {one SAT call\\per variable};
+\node[note, right=2mm of s2.east, text=stageB] {one SAT call\\per variable};
 \node[note, right=2mm of s3.east, text=stageB] {one SAT call\\per variable};
-\node[note, right=2mm of s5.east, text=stageC] {CEGAR loop\\the hard cases};
+\node[note, right=2mm of s4.east, text=stageC] {CEGAR loop\\the hard cases};
 
 \end{tikzpicture}
 \end{center}
