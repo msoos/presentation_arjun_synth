@@ -119,24 +119,20 @@
 \node[io] (in) {\texttt{Puura-simplified CNF} \;+\; \texttt{c p show} (= inputs)};
 
 \node[sA, below=of in] (s1)
- {\textbf{1. Autarky} {\tiny (\texttt{--autarky}, on by default; \texttt{autarky.cpp})}\\
-  {\tiny find a partial assignment that satisfies every clause it touches \cite{liffiton2008}}};
-
-\node[sB, below=of s1] (s2)
- {\textbf{2. Extend (UNSAT-define)} {\tiny (\texttt{--extend}, on by default; \texttt{extend.cpp})}\\
+ {\textbf{1. Extend} {\tiny (\texttt{--extend}, on by default; \texttt{extend.cpp})}\\
   {\tiny per-var SAT call on a doubled CNF; UNSAT $\Rightarrow$ var is determined by inputs alone}};
 
-\node[sB, below=of s2] (s3)
- {\textbf{3. Backward-round-synth} {\tiny (\texttt{--minimize}, on by default; \texttt{backward.cpp})}\\
+\node[sB, below=of s1] (s3)
+ {\textbf{2. Backward-round} {\tiny (\texttt{--minimize}, on by default; \texttt{backward.cpp})}\\
   {\tiny same trick, but lets the var depend on \emph{any} earlier var --- not just inputs}};
 
 \node[sB, below=of s3] (s4)
- {\textbf{4. Unate / definition probe} {\tiny (\texttt{--unatedef}, on by default; \texttt{unate\_def.cpp})}\\
+ {\textbf{3. Unate / definition probe} {\tiny (\texttt{--unatedef}, on by default; \texttt{unate\_def.cpp})}\\
   {\tiny ``def'' part: $y_i$ forced to a constant. \;
    ``conditional'' part: $y_i = \pm L$ for some literal $L$}};
 
 \node[sC, below=of s4] (s5)
- {\textbf{5. Manthan} {\tiny (always runs last; \texttt{manthan.cpp, synth.cpp})}\\
+ {\textbf{4. Manthan} {\tiny (always runs last; \texttt{manthan.cpp, synth.cpp})}\\
   {\tiny BVE-based initial guess $\rightarrow$ counterexample-guided repair (CEGAR) \cite{golia2020manthan, golia2021engineering}}};
 
 \node[io, below=of s5] (out)
@@ -154,24 +150,6 @@
 \vspace{-1mm}
 \scriptsize Stage ordering and \texttt{check\_stage} debug hooks live in
 \texttt{src/main.cpp}; each stage writes a \texttt{-STAGE.aig} dump under \texttt{--debugsynth}.
-\end{frame}
-
-% =========================================================================
-\begin{frame}{Stage 1 --- Autarky}
-  \textbf{Autarky}~\cite{liffiton2008}. An \emph{autarky} is a partial
-  assignment that satisfies every clause it \emph{touches}. Those clauses
-  and the variables in them can be deleted without changing $\exists Y.\, F$,
-  because we can always extend any partial model with the autarky.
-  \medskip
-
-  \begin{exampleblock}{\small Log: autarky on bobtuint07neg}
-  \scriptsize
-  \texttt{[autarky] Done. do\_autarky found autarkies: 0 defined: 0 \\
-   still to-define: 353}
-  \end{exampleblock}
-  \medskip
-  Autarky often finds nothing on QBF benchmarks but is essentially free, so
-  it stays on by default.
 \end{frame}
 
 % =========================================================================
@@ -361,7 +339,7 @@ cyclic-repair pitfall.
 \end{frame}
 
 % =========================================================================
-\begin{frame}{Cool idea: Craig interpolants as a smarter conflict}
+\begin{frame}{Craig interpolants as a smarter conflict}
   The conflict $C$ from step (3) is one \alert{corner} of the input space
   where the current $f_r$ is wrong. The straightforward repair only
   excludes that corner.
@@ -382,9 +360,6 @@ cyclic-repair pitfall.
     \item Walk the proof core (clauses reachable from the empty clause)
           and build the McMillan interpolant by hash-consed AIG
           composition.
-    \item \alert{Always verify}: an $A \rightarrow I$ miter check. On any
-          tracer reconstruction bug we fall back to the plain conflict
-          clause --- never produce a wrong interpolant.
   \end{itemize}
   \medskip
   \scriptsize Same Craig-interpolant idea drives Stages 2--3 above; only
@@ -430,7 +405,6 @@ cyclic-repair pitfall.
     \midrule
     initial (after Puura) & ---                 & 1204             & --- \\
     \;\;synth-BVE         & ---                 & 353              & --- \\
-    autarky               & 0                   & 353              & 0.01\,s \\
     extend                & 108                 & 245              & 0.04\,s \\
     backward-round-synth  & 99                  & 146              & 0.07\,s \\
     unate\_def            & 1                   & 145              & 1.02\,s \\
@@ -458,9 +432,6 @@ cyclic-repair pitfall.
     \item Arjun \emph{synthesises} Boolean functions on a Puura-simplified
           CNF: input / to-define / backward-defined is the only data
           model you need to follow the code.
-    \item \textbf{Defining stages in cost order:} BVE-for-synth $\to$
-          autarky $\to$ extend $\to$ backward $\to$ unate (def + conditional)
-          $\to$ Manthan. Each stage runs only on what its predecessors left.
     \item \textbf{The duplication trick} (doubled CNF, ask whether the two
           copies can disagree) plus \textbf{Craig
           interpolation}~\cite{craig1957} via a CaDiCaL proof tracer
