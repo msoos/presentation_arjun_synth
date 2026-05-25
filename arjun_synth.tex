@@ -118,11 +118,7 @@
 
 \node[io] (in) {\texttt{Puura-simplified CNF} \;+\; \texttt{c p show} (= inputs)};
 
-\node[sA, below=of in] (s0)
- {\textbf{0. BVE for synthesis} {\tiny (\texttt{--synthbve}, on by default)}\\
-  {\tiny one more BVE pass that is allowed to eliminate \emph{to-define} vars}};
-
-\node[sA, below=of s0] (s1)
+\node[sA, below=of in] (s1)
  {\textbf{1. Autarky} {\tiny (\texttt{--autarky}, on by default; \texttt{autarky.cpp})}\\
   {\tiny find a partial assignment that satisfies every clause it touches \cite{liffiton2008}}};
 
@@ -161,16 +157,7 @@
 \end{frame}
 
 % =========================================================================
-\begin{frame}{Stage 0--1 --- BVE for synthesis, then Autarky}
-  \textbf{BVE-for-synthesis.} Same engine as the preprocessor's
-  \texttt{occ-bve}, but variables in \emph{to-define} are eligible for
-  elimination. Eliminating $y_i$ gives an \alert{exact} AIG definition
-  ``for free'': the resolvents we replace with are the conjunction of
-  $y_i$'s clauses, which is the function. (\texttt{src/manthan.cpp}'s
-  \texttt{bve\_and\_substitute()} reuses the very same idea later for
-  initial guesses.)
-  \medskip
-
+\begin{frame}{Stage 1 --- Autarky}
   \textbf{Autarky}~\cite{liffiton2008}. An \emph{autarky} is a partial
   assignment that satisfies every clause it \emph{touches}. Those clauses
   and the variables in them can be deleted without changing $\exists Y.\, F$,
@@ -214,7 +201,7 @@
   \begin{exampleblock}{\small Log: extend on bobtuint07neg}
   \scriptsize
   \texttt{[extend] Start unknown size: 353 \dots
-   [extend] Done.  True: 50 Unkn: 0 defined: 108 still to-define: 245}
+   [extend] Done.  True: 50 Unkn: 0 \\defined: 108 still to-define: 245}
   \end{exampleblock}
 \end{frame}
 
@@ -240,8 +227,8 @@
 
   \begin{exampleblock}{\small Log: backward-synth on bobtuint07neg}
   \scriptsize
-  \texttt{[backward SYNTH] Start unknown size: 245 \dots\\
-   [backward SYNTH] Done.  TR: 146 UN: 0 FA: 99
+  \texttt{[backward SYNTH] Start unknown size: 245 $\dots$
+   [backward SYNTH] Done.  TR: 146 UN: 0 FA: 99\\
    defined: 99 still to-define: 146}
   \end{exampleblock}
   \medskip
@@ -275,7 +262,7 @@
   \texttt{[unate\_def] units: 1 cond defs: 0 cond calls: 1973
    tested: 146 \\
    p1[U=199 S=1575 T=0] p2[U=0 S=199 T=0]\\
-   Done. defined: 1 still to-define: 145}
+   defined: 1 still to-define: 145}
   \end{exampleblock}
   \medskip
   \scriptsize Conditional probing has an adaptive disable
@@ -337,8 +324,7 @@
 
   \begin{exampleblock}{\small Log: BVE substitution}
   \scriptsize
-  \texttt{[manthan] BVE and substitute done. funs: 145 \\
-   funs/s: 8152.48 T: 0.02 mem: 17.68 MB}
+  \texttt{[manthan] BVE and substitute done. funs: 145 funs/s: 8152.48 T: 0.02 mem: 17.68 MB}
   \end{exampleblock}
 \end{frame}
 
