@@ -429,19 +429,20 @@ cyclic-repair pitfall.
 % =========================================================================
 \begin{frame}{Takeaways}
   \begin{itemize}\setlength{\itemsep}{2pt}
-    \item Arjun \emph{synthesises} Boolean functions on a Puura-simplified
-          CNF: input / to-define / backward-defined is the only data
-          model you need to follow the code.
-    \item \textbf{The duplication trick} (doubled CNF, ask whether the two
-          copies can disagree) plus \textbf{Craig
-          interpolation}~\cite{craig1957} via a CaDiCaL proof tracer
-          turns each UNSAT witness into a working AIG.
+    \item \textbf{Synthesis is a spectrum.}  From cheap, global, non-iterative
+          techniques (e.g. BVE, extend) to expensive,
+            iterative ones (Manthan).
+    \item Arjun synthesises Boolean functions on a Puura-simplified
+          CNF: input / to-define / backward-defined is the key data
+          model
     \item \textbf{Manthan} (CEGAR) handles the residue: BVE-style initial
           guess, CMSGen samples, CryptoMiniSat-backed repair solver,
           conflict (or interpolant) generalisation, AIG \texttt{compose}
           repair.
-    \item \textbf{AIGRewriter + AIGToCNF} are the unsung heroes:
+    \item \textbf{AIGRewriter + AIGToCNF} are key elements,
           they keep the cex-solver small so the CEGAR loop stays fast.
+    \item Obviously available for every system you can dream of:
+        Linux, Mac, Windows, compiled for x86, ARM, and WASM.
   \end{itemize}
 \end{frame}
 
@@ -450,15 +451,6 @@ cyclic-repair pitfall.
   \scriptsize
   \begin{thebibliography}{99}
     \setbeamertemplate{bibliography item}{}
-
-    \bibitem{golia2020manthan} Priyanka Golia, Subhajit Roy, Kuldeep S.\ Meel.
-      \emph{Manthan: A Data-Driven Approach for Boolean Function Synthesis.}
-      CAV 2020.
-
-    \bibitem{golia2021engineering} Priyanka Golia, Friedrich Slivovsky,
-      Subhajit Roy, Kuldeep S.\ Meel.
-      \emph{Engineering an Efficient Boolean Functional Synthesis Engine.}
-      ICCAD 2021.
 
     \bibitem{liffiton2008} Mark H.\ Liffiton, Karem A.\ Sakallah.
       \emph{Searching for Autarkies to Trim Unsatisfiable Clause Sets.}
