@@ -433,15 +433,15 @@ cyclic-repair pitfall.
           techniques (e.g. BVE, extend) to expensive,
             iterative ones (Manthan).
     \item Arjun synthesises Boolean functions on a Puura-simplified
-          CNF: input / to-define / backward-defined is the key data
-          model
+        CNF: \textbf{input / to-define / backward-defined} are the key data
+          structures
     \item \textbf{Manthan} (CEGAR) handles the residue: BVE-style initial
           guess, CMSGen samples, CryptoMiniSat-backed repair solver,
           conflict (or interpolant) generalisation, AIG \texttt{compose}
           repair.
     \item \textbf{AIGRewriter + AIGToCNF} are key elements,
           they keep the cex-solver small so the CEGAR loop stays fast.
-    \item Obviously available for every system you can dream of:
+      \item \textbf{Available for every major OS}:
         Linux, Mac, Windows, compiled for x86, ARM, and WASM.
   \end{itemize}
 \end{frame}
