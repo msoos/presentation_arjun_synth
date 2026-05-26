@@ -129,7 +129,7 @@
 \node[sB, below=of s2] (s3)
  {\textbf{3. Unate} {\tiny (\texttt{--unatedef}; \texttt{unate\_def.cpp})}\\
   {\tiny ``def'' part: $y_i$ forced to a constant. \;
-   ``conditional'' part: $y_i = \pm L$ for some literal $L$}};
+   ``equivalent'' part: $y_i = \pm L$ for some literal $L$}};
 
 \node[sC, below=of s3] (s4)
  {\textbf{4. Manthan} {\tiny (runs last; \texttt{manthan.cpp, synth.cpp})}\\
@@ -225,7 +225,7 @@ We try different Manthan strategies, but we won't go into that today. Controlled
   ``equal-on-others'' miter. The constant becomes the AIG.
   \medskip
 
-  \textbf{The ``conditional'' part.}
+  \textbf{The ``equivalent'' part.}
   When both flips are SAT, look at the two SAT witnesses $M_1, M_2$.
   For each candidate literal $L$ with $M_1[L] \neq M_2[L]$, run two
   more SAT calls. If both come back UNSAT we have proved
@@ -238,13 +238,13 @@ We try different Manthan strategies, but we won't go into that today. Controlled
 
   \begin{exampleblock}{\small Log: unate\_def on bobtuint07neg}
   \scriptsize
-  \texttt{[unate\_def] units: 1 cond defs: 0 cond calls: 1973
+  \texttt{[unate\_def] units: 1 eq defs: 0 eq calls: 1973
    tested: 146\\
    defined: 1 still to-define: 145}
   \end{exampleblock}
   \medskip
-  \scriptsize Conditional probing has an adaptive disable
-  (\texttt{cond\_attempts\_since\_last\_hit}) so we stop wasting SAT calls
+  \scriptsize Equivalence probing has an adaptive disable
+  (\texttt{eq\_attempts\_since\_last\_hit}) so we stop wasting SAT calls
   on instances where no single-literal definition exists.
 \end{frame}
 
