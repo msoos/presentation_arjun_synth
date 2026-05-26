@@ -5,6 +5,6 @@
 *.log
 *.nav
 *.out
-*.pdf
 *.snm
 *.synctex.gz
+/arjun_synth.pdf
