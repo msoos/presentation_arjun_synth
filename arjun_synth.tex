@@ -73,15 +73,14 @@
 
   Arjun runs as a tool: \texttt{./arjun --synth input.cnf}. It first
   invokes \textbf{Puura}~\cite{korhonen2021integrating, soos2019bird}
-  (CNF simplification --- \emph{not} covered today) and then attacks the
+  (CNF simplification --- \emph{not} covered here) and then attacks the
   \emph{synthesis} problem on the simplified formula.
 \end{frame}
 
 % =========================================================================
-\begin{frame}{Three kinds of variables --- the only abstraction you need}
+\begin{frame}{Three kinds of variables}
   Throughout the run Arjun classifies every CNF variable into one of three
-  buckets, recorded on the \texttt{SimplifiedCNF} container
-  (\texttt{src/arjun.cpp}):
+  buckets
   \medskip
 
   \begin{description}\setlength{\itemsep}{4pt}
@@ -99,8 +98,7 @@
 
   \textbf{Invariant:} every stage's job is to move variables out of
   \emph{to-define} and into \emph{backward-defined}, with a verified AIG
-  attached. When \texttt{to\_define} is empty we are done
-  (\texttt{cnf.synth\_done()}).
+  attached. When the to-define set is empty we are done.
   \medskip
 
   \begin{exampleblock}{\small Log header (bobtuint07neg)}
@@ -119,20 +117,20 @@
 \node[io] (in) {\texttt{Puura-simplified CNF} \;+\; \texttt{c p show} (= inputs)};
 
 \node[sA, below=of in] (s1)
- {\textbf{1. Extend} {\tiny (\texttt{--extend}; \texttt{extend.cpp})}\\
+ {\textbf{1. Extend} {\tiny (\texttt{--extend})}\\
   {\tiny per-var SAT call on a doubled CNF; UNSAT $\Rightarrow$ var is determined by inputs alone}};
 
 \node[sB, below=of s1] (s2)
- {\textbf{2. Backward} {\tiny (\texttt{--minimize}; \texttt{backward.cpp})}\\
+ {\textbf{2. Backward} {\tiny (\texttt{--minimize})}\\
   {\tiny same trick, but lets the var depend on \emph{any} earlier var --- not just inputs}};
 
 \node[sB, below=of s2] (s3)
- {\textbf{3. Unate} {\tiny (\texttt{--unatedef}; \texttt{unate\_def.cpp})}\\
+ {\textbf{3. Unate} {\tiny (\texttt{--unatedef})}\\
   {\tiny ``def'' part: $y_i$ forced to a constant. \;
    ``equivalent'' part: $y_i = \pm L$ for some literal $L$}};
 
 \node[sC, below=of s3] (s4)
- {\textbf{4. Manthan} {\tiny (runs last; \texttt{manthan.cpp, synth.cpp})}\\
+ {\textbf{4. Manthan} {\tiny (runs last)}\\
   {\tiny BVE-based initial guess $\rightarrow$ counterexample-guided repair (CEGAR) \cite{golia2020manthan, golia2021engineering}}};
 
 \node[io, below=of s4] (out)
@@ -151,7 +149,7 @@
 \vspace{-1mm}
 \bigskip
 \scriptsize
-We try different Manthan strategies, but we won't go into that today. Controlled by \texttt{synth.cpp}
+We try different Manthan strategies, but we won't go into that here.
 \end{frame}
 
 % =========================================================================
@@ -160,7 +158,7 @@ We try different Manthan strategies, but we won't go into that today. Controlled
   \emph{inputs alone} --- and, if it is, extract the AIG defining it.
   \medskip
 
-  \textbf{The construction} (\texttt{extend.cpp}, also used by
+  \textbf{The construction} (also used by
   \cite{soos2020bird}, \cite{durand2025fbcounting}):
   \begin{enumerate}\setlength{\itemsep}{1pt}
     \item Build the \alert{doubled CNF} $F(X, Y_1) \wedge F(X, Y_2)$ ---
@@ -174,7 +172,7 @@ We try different Manthan strategies, but we won't go into that today. Controlled
   \textbf{From UNSAT to AIG.} A CaDiCaL proof tracer reconstructs a
   \alert{McMillan interpolant} over the input vars from the refutation
   proof. The interpolant \emph{is} the AIG definition of $y$
-  (\texttt{interpolant.cpp}; idea: \cite{mcmillan2003interpolation},
+  (idea: \cite{mcmillan2003interpolation},
   \cite{jiang2009interpolating}).
   \medskip
 
@@ -187,8 +185,8 @@ We try different Manthan strategies, but we won't go into that today. Controlled
 
 % =========================================================================
 \begin{frame}{Stage 2 --- Backward round: definitions over \emph{anything}}
-  Extend only accepts $y = f(X)$. \textbf{Backward}
-  (\texttt{backward.cpp}) relaxes that: $y_i$ may be defined by inputs
+  Extend only accepts $y = f(X)$. \textbf{Backward} relaxes that:
+  $y_i$ may be defined by inputs
   \emph{or} by other not-yet-defined $y_j$, as long as the dependency
   graph stays acyclic.
   \medskip
@@ -229,9 +227,10 @@ We try different Manthan strategies, but we won't go into that today. Controlled
   When both flips are SAT, look at the two SAT witnesses $M_1, M_2$.
   For each candidate literal $L$ with $M_1[L] \neq M_2[L]$, run two
   more SAT calls. If both come back UNSAT we have proved
-  $ y \;=\; L \quad\text{or}\quad y \;=\; \neg L$
+  $ y \;=\; L \quad\text{or}\quad y \;=\; \neg L$ is a valid definition.
+  \smallskip
 
-  One literal is enough to define $y$. Candidates are ordered: inputs
+  Candidates are ordered: inputs
   first (cheapest, no cycle risk), then non-inputs that share a clause
   with $y$, then the rest.
   \medskip
@@ -243,45 +242,40 @@ We try different Manthan strategies, but we won't go into that today. Controlled
    defined: 1 still to-define: 145}
   \end{exampleblock}
   \medskip
-  \scriptsize Equivalence probing has an adaptive disable
-  (\texttt{eq\_attempts\_since\_last\_hit}) so we stop wasting SAT calls
-  on instances where no single-literal definition exists.
+  \scriptsize Equivalence probing has an adaptive disable so we stop
+  wasting SAT calls on instances where no single-literal definition exists.
 \end{frame}
 
 % =========================================================================
 \begin{frame}{Stage 5 --- Manthan, the CEGAR core}
-  Whatever Stages 0--4 leave is handed to \textbf{Manthan} (\texttt{manthan.cpp},
-  $\sim$3,200 lines). Manthan is a CEGAR-style synthesiser: it starts with
-  a \emph{guess} for every remaining $y_i$ and \alert{repairs} it using
-  counterexamples returned by a SAT solver. Original paper:
-  \cite{golia2020manthan}; later refinement: \cite{golia2021engineering}.
+  Whatever Stages 0--4 leave is handed to \textbf{Manthan}. Manthan is a
+  CEGAR-style synthesiser: it starts with a \emph{guess} for every remaining
+  $y_i$ and \alert{repairs} it using counterexamples returned by a SAT solver.
   \medskip
 
   \textbf{Two SAT solvers, side by side.}
   \begin{itemize}\setlength{\itemsep}{1pt}
-    \item \texttt{cex\_solver} --- a MetaSolver2 wrapping
+    \item \textbf{cex solver} ---
           \textbf{CaDiCaL}~\cite{biere2019cadical}. Holds the original CNF
           $F(X,Y)$ \alert{and} a $y_i \mapsto \hat y_i$ copy of it (so we
           can ask: does our current candidate $\hat y(X)$ ever disagree
           with some real model?).
-    \item \texttt{repair\_solver} --- a cached SAT solver
-          (\textbf{CryptoMiniSat}, with a CaDiCaL backend toggle) used to
+    \item \textbf{repair solver} --- cached \textbf{CaDiCaL} used to
           extract an \emph{unsat core} explaining \emph{why} a particular
           candidate is wrong on a counterexample.
   \end{itemize}
   \medskip
 
   Initial guesses come from \textbf{CMSGen}~\cite{golia2021cmsgen} samples
-  (100 by default in the \texttt{bve} strategy) and from the BVE-style
+  (100 by default in the BVE strategy) and from the BVE-style
   starting functions (next slide).
 \end{frame}
 
 % =========================================================================
 \begin{frame}{Manthan's BVE starting guess}
   Before any repair, we need \emph{some} candidate $\hat y_i(X, y_{<i})$
-  for every undefined $y_i$. The \texttt{bve} strategy --- the one we
+  for every undefined $y_i$. The BVE strategy --- the one we
   cover here --- uses BVE-style resolution
-  (\texttt{Manthan::bve\_and\_substitute}):
   \medskip
 
   \begin{enumerate}\setlength{\itemsep}{1pt}
@@ -311,29 +305,29 @@ We try different Manthan strategies, but we won't go into that today. Controlled
 \vspace{-1mm}
 \begin{center}
 \begin{tikzpicture}[node distance=1.4mm]
-\node[sB, text width=72mm] (a) {\textbf{(1)} Ask \texttt{cex\_solver}:
+\node[sB, text width=72mm] (a) {\textbf{(1)} Ask the cex solver:
    $F(X,Y) \wedge \neg F(X,\hat Y) \wedge \hat y = f(X)$ for current $f$.\\
    {\tiny SAT $\Rightarrow$ we have a counterexample $(X^*, Y^*, \hat Y^*)$ in which
    some $\hat y_i \neq y_i^*$. \quad UNSAT $\Rightarrow$ done.}};
 \node[sB, below=of a, text width=72mm] (b) {\textbf{(2)} Pick the
    \emph{earliest} wrong $y_r$ in the variable order.};
-\node[sB, below=of b, text width=72mm] (c) {\textbf{(3)} Ask \texttt{repair\_solver}:
+\node[sB, below=of b, text width=72mm] (c) {\textbf{(3)} Ask the repair solver:
    \emph{input-only} conflict first, then full conflict if needed.\\
    {\tiny Conflict $C$ is the unsat core: a small set of literals s.t.
    $C \Rightarrow y_r = v_r$ where $v_r$ is the correct value.}};
-\node[sB, below=of c, text width=72mm] (d) {\textbf{(4)} \texttt{perform\_repair}:
+\node[sB, below=of c, text width=72mm] (d) {\textbf{(4)} Repair:
    $f_r \leftarrow (f_r \wedge \neg C)\;\vee\;(C \wedge v_r)$
    --- \emph{compose-OR / compose-AND} on the AIG.};
 \node[sB, below=of d, text width=72mm] (e) {\textbf{(5)} Recompute $\hat Y$ on the
-   ctx, recompute \texttt{needs\_repair}, loop.};
+   ctx, recompute which variables still need repair, loop.};
 \foreach \a/\b in {a/b, b/c, c/d, d/e}
   \draw[fl] (\a) -- (\b);
 \draw[fl] (e.east) -- ++(8mm,0) |- (a.east);
 \end{tikzpicture}
 \end{center}
 \vspace{-2mm}
-\scriptsize Each loop turn fires \texttt{stats\_every=40} / \texttt{detailed\_stats\_every=200}
-log lines. Variable order is fixed up front by \texttt{bve\_order} (minimises
+\scriptsize Each loop turn fires periodic stats log lines.
+Variable order is fixed up front by a BVE-derived ordering (minimises
 back-edges) so that ``earliest wrong'' is well-defined and avoids the
 cyclic-repair pitfall.
 \end{frame}
@@ -350,13 +344,13 @@ cyclic-repair pitfall.
   only}, separating the UNSAT proof's $A$ side (this corner) from the $B$
   side (the formula). $I(X)$ generalises the conflict to the
   \emph{entire} must-flip region of input space, so one
-  \texttt{compose\_or} captures many repairs at once.
+  compose-OR captures many repairs at once.
   \medskip
 
-  \textbf{Implementation} (\texttt{interp\_repair.cpp}):
+  \textbf{Implementation:}
   \begin{itemize}\setlength{\itemsep}{1pt}
-    \item A fresh CaDiCaL instance per repair, with an
-          \texttt{InterpTracerMcMillan} attached as a proof tracer.
+    \item A fresh CaDiCaL instance per repair, with a McMillan
+          interpolation proof tracer attached.
     \item Walk the proof core (clauses reachable from the empty clause)
           and build the McMillan interpolant by hash-consed AIG
           composition.
@@ -370,12 +364,12 @@ cyclic-repair pitfall.
 \begin{frame}{AIG rewriting and AIG-to-CNF -- why they matter}
   \textbf{Manthan's hot loop is the SAT solver.} Every repair grows the
   candidate AIG for some $y_i$; every grown AIG must be Tseitin-encoded
-  into \texttt{cex\_solver}. If we encoded naively, \texttt{cex\_solver}
+  into the cex solver. If we encoded naively, the cex solver
   would balloon and dominate runtime.
   \medskip
 
-  \textbf{\texttt{AIGRewriter} (\texttt{aig\_rewrite.cpp}).}
-  Each repair round runs \texttt{simplify\_aig} + an optional rewrite
+  \textbf{AIG rewriting.}
+  Each repair round runs a simplification pass + an optional rewrite
   pass: constant propagation, complement elimination, idempotence,
   absorption, AND/OR distribution, XOR simplification, structural
   hash-consing, and \alert{FRAIG-lite SAT-sweeping}~\cite{mishchenko2005fraiging}.
@@ -388,7 +382,7 @@ cyclic-repair pitfall.
   \end{exampleblock}
   \medskip
 
-  \textbf{\texttt{AIGToCNF} (\texttt{aig\_to\_cnf.h}).}  K-ary AND/OR
+  \textbf{AIG-to-CNF encoding.}  K-ary AND/OR
   fusion, De Morgan flattening (free in the input-edge-neg model),
   ITE / MUX3 detection, and \emph{cut-CNF}~\cite{een2007applying} encoding for
   small cones.  One encoder per formula (cross-formula caching is
@@ -408,7 +402,7 @@ cyclic-repair pitfall.
     backward  & 99                  & 146              & 0.07\,s \\
     unate\_def            & 1                   & 145              & 1.02\,s \\
     \midrule
-    Manthan (\texttt{bve} strategy) & \textbf{145}        & \textbf{0}       & 4.62\,s \\
+    Manthan (BVE strategy) & \textbf{145}        & \textbf{0}       & 4.62\,s \\
     \bottomrule
   \end{tabular}
   \end{center}
@@ -419,8 +413,8 @@ cyclic-repair pitfall.
           Manthan starts --- Manthan only handles the hard 145.
     \item \textbf{Manthan stats.} 1864 repairs in 1631 loops; 24\%
           repair-solver cache-hit rate; conflict size avg 8.96 lits.
-    \item \textbf{Time breakdown.} 39\% in \texttt{cex\_finding},
-          21\% in \texttt{find\_conflict}, 22\% in \texttt{recompute\_y\_hat}
+    \item \textbf{Time breakdown.} 39\% in counterexample search,
+          21\% in conflict extraction, 22\% in recomputing candidate values
           --- SAT calls and AIG bookkeeping dominate.
   \end{itemize}
 \end{frame}
@@ -442,10 +436,10 @@ cyclic-repair pitfall.
           structures
     \item \textbf{Manthan} (CEGAR) handles the residue: BVE-style initial
           guess, CMSGen samples, CryptoMiniSat-backed repair solver,
-          conflict (or interpolant) generalisation, AIG \texttt{compose}
+          conflict (or interpolant) generalisation, AIG composition
           repair.
-    \item \textbf{AIGRewriter + AIGToCNF} are key elements,
-          they keep the cex-solver small so the CEGAR loop stays fast.
+    \item \textbf{AIG rewriting + AIG-to-CNF} are key elements,
+          they keep the cex solver small so the CEGAR loop stays fast.
     \item \textbf{Available for every major OS}:
         Linux, Mac, Windows, compiled for x86, ARM, and WASM.
   \end{itemize}
