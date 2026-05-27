@@ -97,7 +97,7 @@
   \medskip
 
   \textbf{Invariant:} every stage's job is to move variables out of
-  \emph{to-define} and into \emph{backward-defined}, with a verified AIG
+  \emph{to-define} and into \emph{input} or \emph{backward-defined}, with a verified AIG
   attached. When the to-define set is empty we are done.
   \medskip
 
@@ -121,7 +121,7 @@
   {\tiny per-var SAT call on a doubled CNF; UNSAT $\Rightarrow$ var is determined by inputs alone}};
 
 \node[sB, below=of s1] (s2)
- {\textbf{2. Backward} {\tiny (\texttt{--minimize})}\\
+ {\textbf{2. Backward} {\tiny (\texttt{--backward})}\\
   {\tiny same trick, but lets the var depend on \emph{any} earlier var --- not just inputs}};
 
 \node[sB, below=of s2] (s3)
