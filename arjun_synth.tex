@@ -16,7 +16,7 @@
 % ---- colours -------------------------------------------------------------
 \definecolor{stageA}{RGB}{ 70,115,170}   % cheap defs (autarky, extend)
 \definecolor{stageB}{RGB}{ 89,161, 79}   % SAT-per-var defs (backward, unate)
-\definecolor{stageC}{RGB}{225,140, 43}   % Manthan
+\definecolor{stageC}{RGB}{225,140, 43}   % CEGAR
 \definecolor{ioBox}{RGB}{ 90, 90, 90}
 \definecolor{hl}{RGB}{200, 60, 60}
 
@@ -130,7 +130,7 @@
    ``equivalent'' part: $y_i = \pm L$ for some literal $L$}};
 
 \node[sC, below=of s3] (s4)
- {\textbf{4. Manthan} {\tiny (runs last)}\\
+ {\textbf{4. CEGAR} {\tiny (runs last)}\\
   {\tiny BVE-based initial guess $\rightarrow$ counterexample-guided repair (CEGAR) \cite{golia2020manthan, golia2021engineering}}};
 
 \node[io, below=of s4] (out)
@@ -149,7 +149,7 @@
 \vspace{-1mm}
 \bigskip
 \scriptsize
-We try different Manthan strategies, but we won't go into that here.
+We try different CEGAR strategies, but we won't go into that here.
 \end{frame}
 
 % =========================================================================
@@ -244,9 +244,9 @@ We try different Manthan strategies, but we won't go into that here.
 \end{frame}
 
 % =========================================================================
-\begin{frame}{Stage 4 --- Manthan, the CEGAR core}
-  Whatever Stages 1--3 leave is handed to \textbf{Manthan}. Manthan is a
-  CEGAR-style synthesiser: it starts with a \emph{guess} for every remaining
+\begin{frame}{Stage 4 --- The CEGAR core}
+  Whatever Stages 1--3 leave is handed to the \textbf{CEGAR} stage: it
+  starts with a \emph{guess} for every remaining
   $y_i$ and \alert{repairs} it using counterexamples returned by a SAT solver.
   \medskip
 
@@ -269,7 +269,7 @@ We try different Manthan strategies, but we won't go into that here.
 \end{frame}
 
 % =========================================================================
-\begin{frame}{Manthan's BVE starting guess}
+\begin{frame}{CEGAR's BVE starting guess}
   Before any repair, we need \emph{some} candidate $\hat y_i(X, y_{<i})$
   for every undefined $y_i$. The BVE strategy --- the one we
   cover here --- uses BVE-style resolution
@@ -293,7 +293,7 @@ We try different Manthan strategies, but we won't go into that here.
 
   \begin{exampleblock}{\small Log: BVE substitution}
   \scriptsize
-  \texttt{[manthan] BVE and substitute done. funs: 145 funs/s: 8152.48 T: 0.02 mem: 17.68 MB}
+  \texttt{[cegar] BVE and substitute done. funs: 145 funs/s: 8152.48 T: 0.02 mem: 17.68 MB}
   \end{exampleblock}
 \end{frame}
 
@@ -359,7 +359,7 @@ cyclic-repair pitfall.
 
 % =========================================================================
 \begin{frame}{AIG rewriting and AIG-to-CNF -- why they matter}
-  \textbf{Manthan's hot loop is the SAT solver.} Every repair grows the
+  \textbf{The CEGAR hot loop is the SAT solver.} Every repair grows the
   candidate AIG for some $y_i$; every grown AIG must be Tseitin-encoded
   into the cex solver. If we encoded naively, the cex solver
   would balloon and dominate runtime.
@@ -399,7 +399,7 @@ cyclic-repair pitfall.
     backward  & 99                  & 146              & 0.07\,s \\
     unate\_def            & 1                   & 145              & 1.02\,s \\
     \midrule
-    Manthan (BVE strategy) & \textbf{145}        & \textbf{0}       & 4.62\,s \\
+    CEGAR (BVE strategy) & \textbf{145}        & \textbf{0}       & 4.62\,s \\
     \bottomrule
   \end{tabular}
   \end{center}
@@ -407,8 +407,8 @@ cyclic-repair pitfall.
 
   \begin{itemize}
     \item \textbf{Cheap stages first.} 209 of 353 vars defined before
-          Manthan starts --- Manthan only handles the hard 145.
-    \item \textbf{Manthan stats.} 1864 repairs in 1631 loops; 24\%
+          CEGAR starts --- CEGAR only handles the hard 145.
+    \item \textbf{CEGAR stats.} 1864 repairs in 1631 loops; 24\%
           repair-solver cache-hit rate; conflict size avg 8.96 lits.
     \item \textbf{Time breakdown.} 39\% in counterexample search,
           21\% in conflict extraction, 22\% in recomputing candidate values
@@ -427,11 +427,11 @@ cyclic-repair pitfall.
   \begin{itemize}\setlength{\itemsep}{2pt}
     \item \textbf{Synthesis is best done in stages}  From cheap, global, non-iterative
           techniques (e.g. extend, backward) to expensive,
-            iterative ones (Manthan).
+            iterative ones (CEGAR).
     \item Arjun synthesises Boolean functions on a Puura-simplified
         CNF: \textbf{input / to-define / backward-defined} are the key data
           structures
-    \item \textbf{Manthan} (CEGAR) handles the residue: BVE-style initial
+    \item \textbf{CEGAR} handles the residue: BVE-style initial
           guess, CMSGen samples, CryptoMiniSat-backed repair solver,
           conflict (or interpolant) generalisation, AIG composition
           repair.
